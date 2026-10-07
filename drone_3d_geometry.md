@@ -1,5 +1,7 @@
 # 3D Euclidean Geometry: Target Drone from Camera Image
 
+![Target Drone Detection](drone_detection.jpg)
+
 ## 1. Objective
 To determine the 3D position of a target drone from a single camera image using a standard YOLO $320 \times 320$ bounding box, factoring in the specific ultra-wide camera parameters and image cropping.
 
