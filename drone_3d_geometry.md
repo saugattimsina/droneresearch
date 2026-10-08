@@ -77,3 +77,26 @@ Using the YOLO 320 x 320 data, we calculate the exact 3D coordinates of the targ
 
 ### 7. Result
 Relative to the camera, the 35 cm target drone is located at Euclidean coordinates (X, Y, Z) = (0.64, -1.75, 3.84), meaning it is **3.84 meters forward**, **0.64 meters right**, and **1.75 meters above** the camera.
+
+---
+
+## Part C: Real-World Implementation Findings
+
+After reviewing the actual C++ codebase (`main.cpp` and `camera_capture.cpp`), the drone software implements the Euclidean geometry slightly differently than our manual calculations. 
+
+### 1. The Pipeline Operates at 480x480
+The system does not squash the image to 320x320. Instead, it hardcodes the camera pipeline to `FRAME_WIDTH = 480` and `FRAME_HEIGHT = 480`. 
+
+**Letterboxing:** When the camera feeds an image into the system, `camera_capture.cpp` scales the image down so it perfectly fits inside the 480px width, and then pads the top and bottom with gray bars ("letterboxing"). This preserves the exact physical aspect ratio of the drone, ensuring no geometric distortion occurs before distance calculation.
+
+### 2. Automatic Focal Length Calculation
+The codebase automates the focal length scaling we performed manually in Part B. 
+Instead of calculating the cropped pixel focal length, you simply pass the **Horizontal Field of View (HFOV)** as a command-line argument to the drone.
+
+The code dynamically scales the focal length to match the 480px frame using the exact pinhole tangent formula:
+* `focal_length_px = (FRAME_WIDTH / 2.0) / tan(HFOV / 2.0)`
+
+### 3. Edge Safety Protocol
+In `distance_estimator.cpp`, the code implements a `boxTouchesEdge()` safety check. If the bounding box of the drone touches the edge of the 480x480 frame, the distance calculation is entirely aborted. A cut-off bounding box appears artificially small, which would cause the depth equation ($Z$) to spike, making the drone lunge forward unexpectedly. 
+
+Because of these findings, our manual calculations serve as a perfect conceptual model, but the actual robot relies exclusively on the HFOV to safely calculate distance inside a 480x480 letterboxed frame.
